@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简商品展示商城</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background-color: #ff4400;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            padding: 15px 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background-color: #ff4400;
+            color: white;
+            border-color: #ff4400;
+        }
+
+        /* 商品列表容器 */
+        .product-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 商品卡片 */
+        .product-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .product-price {
+            color: #ff4400;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-sales {
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* 详情弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .product-detail {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .detail-img {
+            width: 300px;
+            height: 300px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .detail-price {
+            font-size: 28px;
+            color: #ff4400;
+            margin-bottom: 15px;
+        }
+
+        .detail-desc {
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .buy-btn {
+            background-color: #ff4400;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <h1>极简商品展示商城</h1>
+    </header>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <button class="filter-btn active" data-type="all">全部商品</button>
+        <button class="filter-btn" data-type="electronics">电子产品</button>
+        <button class="filter-btn" data-type="clothes">服装鞋帽</button>
+        <button class="filter-btn" data-type="food">食品零食</button>
+    </div>
+
+    <!-- 商品列表 -->
+    <div class="product-container" id="productList">
+        <!-- 商品卡片由JS动态生成 -->
+    </div>
+
+    <!-- 商品详情弹窗 -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <div class="product-detail" id="productDetail">
+                <!-- 详情内容由JS动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟商品数据
+        const products = [
+            {
+                id: 1,
+                title: "智能手机 128G 旗舰款",
+                price: 3999,
+                sales: "已售 1.2万",
+                img: "https://picsum.photos/seed/phone1/400/400",
+                type: "electronics",
+                desc: "这款旗舰智能手机搭载最新处理器，128G超大存储，6.7英寸高清大屏，5000mAh大电池，支持66W超级快充，拍照效果出色，满足日常所有使用需求。"
+            },
+            {
+                id: 2,
+                title: "纯棉短袖T恤 白色 M码",
+                price: 59,
+                sales: "已售 5.8万",
+                img: "https://picsum.photos/seed/clothes1/400/400",
+                type: "clothes",
+                desc: "100%纯棉材质，亲肤透气，经典白色款，版型宽松不挑身材，M码适合身高165-175cm，体重55-65kg的人群，可机洗不变形。"
+            },
+            {
+                id: 3,
+                title: "网红零食大礼包",
+                price: 89,
+                sales: "已售 3.5万",
+                img: "https://picsum.photos/seed/food1/400/400",
+                type: "food",
+                desc: "包含薯片、饼干、糖果、肉干等20余种网红零食，分量足，性价比高，适合追剧、聚会、送礼等场景。"
+            },
+            {
+                id: 4,
+                title: "无线蓝牙耳机 降噪款",
+                price: 299,
+                sales: "已售 2.1万",
+                img: "https://picsum.photos/seed/earphone1/400/400",
+                type: "electronics",
+                desc: "主动降噪功能，续航长达30小时，支持无线充电，佩戴舒适，音质清晰，兼容安卓和苹果系统。"
+            },
+            {
+                id: 5,
+                title: "夏季薄款牛仔裤 修身款",
+                price: 129,
+                sales: "已售 1.8万",
+                img: "https://picsum.photos/seed/clothes2/400/400",
+                type: "clothes",
+                desc: "夏季薄款牛仔面料，透气不闷热，修身版型显腿长，弹力适中，有30-36码可选，适合日常穿搭。"
+            },
+            {
+                id: 6,
+                title: "进口坚果礼盒 1.5kg",
+                price: 169,
+                sales: "已售 9800",
+                img: "https://picsum.photos/seed/food2/400/400",
+                type: "food",
+                desc: "包含夏威夷果、巴旦木、核桃、腰果等8种进口坚果，无添加，1.5kg大容量，礼盒包装，送礼首选。"
+            }
+        ];
+
+        // 获取DOM元素
+        const productList = document.getElementById('productList');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const modal = document.getElementById('productModal');
+        const closeModal = document.getElementById('closeModal');
+        const productDetail = document.getElementById('productDetail');
+
+        // 渲染商品列表
+        function renderProducts(filterType = 'all') {
+            productList.innerHTML = '';
+            // 筛选商品
+            const filteredProducts = filterType === 'all' 
+                ? products 
+                : products.filter(item => item.type === filterType);
+            
+            // 生成商品卡片
+            filteredProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.id = product.id;
+                card.innerHTML = `
+                    <img src="${product.img}" alt="${product.title}" class="product-img">
+                    <div class="product-info">
+                        <h3 class="product-title">${product.title}</h3>
+                        <p class="product-price">¥${product.price}</p>
+                        <p class="product-sales">${product.sales}</p>
+                    </div>
+                `;
+                // 点击商品卡片打开详情
+                card.addEventListener('click', () => showProductDetail(product.id));
+                productList.appendChild(card);
+            });
+        }
+
+        // 显示商品详情
+        function showProductDetail(productId) {
+            const product = products.find(item => item.id === productId);
+            if (product) {
+                productDetail.innerHTML = `
+                    <img src="${product.img}" alt="${product.title}" class="detail-img">
+                    <div class="detail-info">
+                        <h2 class="detail-title">${product.title}</h2>
+                        <p class="detail-price">¥${product.price}</p>
+                        <p class="detail-desc">${product.desc}</p>
+                        <button class="buy-btn">立即购买</button>
+                    </div>
+                `;
+                modal.style.display = 'flex';
+            }
+        }
+
+        // 初始化
+        renderProducts();
+
+        // 筛选按钮点击事件
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有激活状态
+                filterBtns.forEach(b => b.classList.remove('active'));
+                // 添加当前激活状态
+                btn.classList.add('active');
+                // 渲染筛选后的商品
+                renderProducts(btn.dataset.type);
+            });
+        });
+
+        // 关闭弹窗
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // 点击弹窗外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
