@@ -277,13 +277,21 @@
 
     <!-- <script type="text/javascript" src="products.js"></script> -->
     <script type="text/javascript">
-
-        const response = await fetch("products_details.json");
-        if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        async function loadJSON(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('获取到的数据:', data);
+                return data; // 返回数据，方便在其他地方使用
+            } catch (error) {
+                console.error('获取或解析 JSON 文件失败:', error);
+            }
         }
-        const products = await response.json();
-        console.log('获取到的数据:', products);
+    </script>
+    <script type="text/javascript">
 
         // 获取DOM元素
         const productList = document.getElementById('productList');
@@ -293,7 +301,9 @@
         const productDetail = document.getElementById('productDetail');
 
         // 渲染商品列表
-        function renderProducts(filterType = 'all') {
+        async function renderProducts(filterType = 'all') {
+            const products = await loadJSON("products.json");
+
             productList.innerHTML = '';
             // 筛选商品
             const filteredProducts = filterType === 'all' 
