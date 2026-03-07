@@ -255,9 +255,10 @@
     <!-- 筛选栏 - 秒杀专区按钮 -->
     <div class="filter-bar">
         <button class="filter-btn active" data-type="all">全部商品</button>
-        <button class="filter-btn" data-type="electronics">1元包邮 秒杀专区</button>
-        <button class="filter-btn" data-type="clothes">2元包邮 秒杀赚钱</button>
-        <button class="filter-btn" data-type="food">3元包邮 秒杀专区</button>
+        <button class="filter-btn" data-type="1">1元包邮 秒杀专区</button>
+        <button class="filter-btn" data-type="2">2元包邮 秒杀赚钱</button>
+        <button class="filter-btn" data-type="3">3元包邮 秒杀专区</button>
+        <button class="filter-btn" data-type="99">其他</button>
     </div>
 
     <!-- 商品列表 -->
@@ -301,8 +302,11 @@
         const productDetail = document.getElementById('productDetail');
 
         // 渲染商品列表
+        let products = []
         async function renderProducts(filterType = 'all') {
-            const products = await loadJSON("js/products.json");
+            if(products.length === 0) {
+                products = await loadJSON("js/products.json");
+            }
 
             productList.innerHTML = '';
             // 筛选商品
